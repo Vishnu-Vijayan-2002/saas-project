@@ -1,0 +1,233 @@
+/* ============================================================
+   CONSTANTS — Single source of truth for all enums/states
+   ============================================================ */
+
+// ---- USER ROLES ----
+export const ROLES = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  BUSINESS_ADMIN: 'BUSINESS_ADMIN',
+  SALESMAN: 'SALESMAN',
+  CUSTOMER: 'CUSTOMER',
+};
+
+// ---- ORDER STATES ----
+export const ORDER_STATES = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  PREPARING: 'PREPARING',
+  READY_FOR_DELIVERY: 'READY_FOR_DELIVERY',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED',
+};
+
+// ---- PAYMENT STATES ----
+export const PAYMENT_STATES = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
+  REFUNDED: 'REFUNDED',
+};
+
+// ---- DELIVERY STATES ----
+export const DELIVERY_STATES = {
+  NOT_DELIVERED: 'NOT_DELIVERED',
+  DELIVERED: 'DELIVERED',
+};
+
+// ---- DELIVERY ATTEMPT REASONS ----
+export const DELIVERY_ATTEMPT_REASONS = {
+  CUSTOMER_UNAVAILABLE: 'CUSTOMER_UNAVAILABLE',
+  WRONG_SEAT: 'WRONG_SEAT',
+  CUSTOMER_CANCELLED: 'CUSTOMER_CANCELLED',
+  ORDER_NOT_FOUND: 'ORDER_NOT_FOUND',
+  PRODUCT_UNAVAILABLE: 'PRODUCT_UNAVAILABLE',
+  OTHER: 'OTHER',
+};
+
+// ---- CANCELLATION REASONS ----
+export const CANCELLATION_REASONS = {
+  CUSTOMER_REQUEST: 'CUSTOMER_REQUEST',
+  PRODUCT_UNAVAILABLE: 'PRODUCT_UNAVAILABLE',
+  PAYMENT_ISSUE: 'PAYMENT_ISSUE',
+  BUSINESS_REQUEST: 'BUSINESS_REQUEST',
+  DUPLICATE_ORDER: 'DUPLICATE_ORDER',
+  OTHER: 'OTHER',
+};
+
+// ---- REFUND TYPES ----
+export const REFUND_TYPES = {
+  FULL: 'FULL',
+  PARTIAL: 'PARTIAL',
+};
+
+// ---- REFUND REASONS ----
+export const REFUND_REASONS = {
+  PRODUCT_UNAVAILABLE: 'PRODUCT_UNAVAILABLE',
+  CUSTOMER_REQUEST: 'CUSTOMER_REQUEST',
+  ORDER_CANCELLED: 'ORDER_CANCELLED',
+  QUALITY_ISSUE: 'QUALITY_ISSUE',
+  OTHER: 'OTHER',
+};
+
+// ---- REFUND STATUSES ----
+export const REFUND_STATUSES = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+};
+
+// ---- AUDIT ACTIONS ----
+export const AUDIT_ACTIONS = {
+  ORDER_CREATED: 'ORDER_CREATED',
+  PAYMENT_CONFIRMED: 'PAYMENT_CONFIRMED',
+  ORDER_CONFIRMED: 'ORDER_CONFIRMED',
+  ORDER_PREPARING: 'ORDER_PREPARING',
+  ORDER_READY: 'ORDER_READY',
+  ORDER_CANCELLED: 'ORDER_CANCELLED',
+  REFUND_REQUESTED: 'REFUND_REQUESTED',
+  REFUND_COMPLETED: 'REFUND_COMPLETED',
+  PARTIAL_REFUND_COMPLETED: 'PARTIAL_REFUND_COMPLETED',
+  ORDER_DELIVERED: 'ORDER_DELIVERED',
+  DELIVERY_ATTEMPTED: 'DELIVERY_ATTEMPTED',
+  SALESMAN_ASSIGNED: 'SALESMAN_ASSIGNED',
+};
+
+// ---- PRODUCT STATUSES ----
+export const PRODUCT_STATUSES = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  OUT_OF_STOCK: 'OUT_OF_STOCK',
+};
+
+// ---- TENANT STATUSES ----
+export const TENANT_STATUSES = {
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  PENDING: 'PENDING',
+};
+
+// ---- CAMPAIGN STATUSES ----
+export const CAMPAIGN_STATUSES = {
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  SENDING: 'SENDING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+};
+
+// ---- ERROR CODES ----
+export const ERROR_CODES = {
+  UNAUTHENTICATED: 'UNAUTHENTICATED',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  TENANT_ACCESS_DENIED: 'TENANT_ACCESS_DENIED',
+  ORDER_NOT_FOUND: 'ORDER_NOT_FOUND',
+  ORDER_ALREADY_CANCELLED: 'ORDER_ALREADY_CANCELLED',
+  ORDER_ALREADY_COMPLETED: 'ORDER_ALREADY_COMPLETED',
+  PAYMENT_NOT_FOUND: 'PAYMENT_NOT_FOUND',
+  PAYMENT_NOT_PAID: 'PAYMENT_NOT_PAID',
+  REFUND_AMOUNT_INVALID: 'REFUND_AMOUNT_INVALID',
+  REFUND_LIMIT_EXCEEDED: 'REFUND_LIMIT_EXCEEDED',
+  REFUND_ALREADY_PROCESSED: 'REFUND_ALREADY_PROCESSED',
+  INVALID_ORDER_TRANSITION: 'INVALID_ORDER_TRANSITION',
+  INVALID_DELIVERY_UPDATE: 'INVALID_DELIVERY_UPDATE',
+  SALESMAN_NOT_ASSIGNED: 'SALESMAN_NOT_ASSIGNED',
+  DUPLICATE_REQUEST: 'DUPLICATE_REQUEST',
+  PRODUCT_NOT_FOUND: 'PRODUCT_NOT_FOUND',
+  INSUFFICIENT_STOCK: 'INSUFFICIENT_STOCK',
+  TENANT_NOT_FOUND: 'TENANT_NOT_FOUND',
+  TENANT_SUSPENDED: 'TENANT_SUSPENDED',
+  INVALID_INPUT: 'INVALID_INPUT',
+};
+
+// ---- USER-FRIENDLY ERROR MESSAGES ----
+export const ERROR_MESSAGES = {
+  [ERROR_CODES.UNAUTHENTICATED]: 'Please sign in to continue.',
+  [ERROR_CODES.UNAUTHORIZED]: 'You do not have permission to perform this action.',
+  [ERROR_CODES.TENANT_ACCESS_DENIED]: 'You do not have access to this business.',
+  [ERROR_CODES.ORDER_NOT_FOUND]: 'Order not found.',
+  [ERROR_CODES.ORDER_ALREADY_CANCELLED]: 'This order has already been cancelled.',
+  [ERROR_CODES.ORDER_ALREADY_COMPLETED]: 'This order has already been completed and cannot be modified.',
+  [ERROR_CODES.PAYMENT_NOT_FOUND]: 'Payment record not found.',
+  [ERROR_CODES.PAYMENT_NOT_PAID]: 'Payment has not been completed for this order.',
+  [ERROR_CODES.REFUND_AMOUNT_INVALID]: 'The refund amount is invalid.',
+  [ERROR_CODES.REFUND_LIMIT_EXCEEDED]: 'The refund amount exceeds the refundable balance.',
+  [ERROR_CODES.REFUND_ALREADY_PROCESSED]: 'This refund has already been processed.',
+  [ERROR_CODES.INVALID_ORDER_TRANSITION]: 'This order status change is not allowed.',
+  [ERROR_CODES.INVALID_DELIVERY_UPDATE]: 'This delivery update is not allowed.',
+  [ERROR_CODES.SALESMAN_NOT_ASSIGNED]: 'No salesman is assigned to this order.',
+  [ERROR_CODES.DUPLICATE_REQUEST]: 'This request has already been processed.',
+  [ERROR_CODES.PRODUCT_NOT_FOUND]: 'Product not found.',
+  [ERROR_CODES.INSUFFICIENT_STOCK]: 'Insufficient stock for one or more items.',
+  [ERROR_CODES.TENANT_NOT_FOUND]: 'Business not found.',
+  [ERROR_CODES.TENANT_SUSPENDED]: 'This business account has been suspended.',
+  [ERROR_CODES.INVALID_INPUT]: 'Invalid input. Please check your data.',
+};
+
+// ---- CURRENCY ----
+export const DEFAULT_CURRENCY = 'INR';
+export const CURRENCY_SYMBOL = '₹';
+
+// ---- WHATSAPP NOTIFICATION EVENTS ----
+export const WHATSAPP_EVENTS = {
+  ORDER_CREATED: 'ORDER_CREATED',
+  PAYMENT_CONFIRMED: 'PAYMENT_CONFIRMED',
+  ORDER_CONFIRMED: 'ORDER_CONFIRMED',
+  ORDER_PREPARING: 'ORDER_PREPARING',
+  ORDER_READY: 'ORDER_READY',
+  ORDER_DELIVERED: 'ORDER_DELIVERED',
+  ORDER_CANCELLED: 'ORDER_CANCELLED',
+  REFUND_COMPLETED: 'REFUND_COMPLETED',
+  PARTIAL_REFUND_COMPLETED: 'PARTIAL_REFUND_COMPLETED',
+};
+
+// ---- ROUTE PATHS ----
+export const ROUTES = {
+  LOGIN: '/login',
+  FORGOT_PASSWORD: '/forgot-password',
+
+  // Super Admin
+  SUPER_ADMIN: '/super-admin',
+  SUPER_ADMIN_DASHBOARD: '/super-admin/dashboard',
+  SUPER_ADMIN_TENANTS: '/super-admin/tenants',
+  SUPER_ADMIN_TENANT_DETAIL: '/super-admin/tenants/:tenantId',
+  SUPER_ADMIN_CREATE_TENANT: '/super-admin/tenants/create',
+  SUPER_ADMIN_PLANS: '/super-admin/plans',
+  SUPER_ADMIN_SUBSCRIPTIONS: '/super-admin/subscriptions',
+  SUPER_ADMIN_USAGE: '/super-admin/usage',
+  SUPER_ADMIN_SETTINGS: '/super-admin/settings',
+
+  // Business Admin
+  ADMIN: '/admin',
+  ADMIN_DASHBOARD: '/admin/dashboard',
+  ADMIN_ORDERS: '/admin/orders',
+  ADMIN_ORDER_DETAIL: '/admin/orders/:orderId',
+  ADMIN_PRODUCTS: '/admin/products',
+  ADMIN_CATEGORIES: '/admin/categories',
+  ADMIN_INVENTORY: '/admin/inventory',
+  ADMIN_CUSTOMERS: '/admin/customers',
+  ADMIN_SALESMEN: '/admin/salesmen',
+  ADMIN_WHATSAPP: '/admin/whatsapp',
+  ADMIN_TEMPLATES: '/admin/templates',
+  ADMIN_CAMPAIGNS: '/admin/campaigns',
+  ADMIN_CAMPAIGN_BUILDER: '/admin/campaigns/create',
+  ADMIN_MOVIE_PROMOTIONS: '/admin/promotions',
+  ADMIN_ANALYTICS: '/admin/analytics',
+  ADMIN_SETTINGS: '/admin/settings',
+
+  // Salesman
+  SALESMAN: '/salesman',
+  SALESMAN_DASHBOARD: '/salesman/dashboard',
+  SALESMAN_ORDERS: '/salesman/orders',
+  SALESMAN_HISTORY: '/salesman/history',
+  SALESMAN_PROFILE: '/salesman/profile',
+
+  // Customer
+  ORDER: '/order/:tenantId',
+  ORDER_CART: '/order/:tenantId/cart',
+  ORDER_CHECKOUT: '/order/:tenantId/checkout',
+  ORDER_CONFIRMATION: '/order/:tenantId/confirmation/:orderId',
+  ORDER_STATUS: '/order/:tenantId/status/:orderId',
+};

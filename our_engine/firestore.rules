@@ -1,0 +1,237 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // HELPER FUNCTIONS
+    // ============================================================
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Get the user's role from custom claims
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+
+    // Get the user's tenantId from custom claims
+    function getUserTenantId() {
+      return request.auth.token.tenantId;
+    }
+
+    // Check if user is a Super Admin
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserRole() == 'SUPER_ADMIN';
+    }
+
+    // Check if user belongs to the specified tenant
+    function belongsToTenant(tenantId) {
+      return isAuthenticated() && getUserTenantId() == tenantId;
+    }
+
+    // Check if user is a Business Admin for the specified tenant
+    function isBusinessAdmin(tenantId) {
+      return belongsToTenant(tenantId) && getUserRole() == 'BUSINESS_ADMIN';
+    }
+
+    // Check if user is a Salesman for the specified tenant
+    function isSalesman(tenantId) {
+      return belongsToTenant(tenantId) && getUserRole() == 'SALESMAN';
+    }
+
+    // Check if user is a Customer for the specified tenant
+    function isCustomer(tenantId) {
+      return belongsToTenant(tenantId) && getUserRole() == 'CUSTOMER';
+    }
+
+    // Check if the user is a Business Admin or Super Admin
+    function isAdminLevel(tenantId) {
+      return isBusinessAdmin(tenantId) || isSuperAdmin();
+    }
+
+    // ============================================================
+    // PLATFORM-LEVEL COLLECTIONS
+    // ============================================================
+
+    // Platform config — Super Admin only
+    match /platformConfig/{docId} {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    // Plans — Super Admin manages, others can read
+    match /plans/{planId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // User profiles (top-level lookup by UID)
+    match /userProfiles/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperAdmin());
+      allow write: if isSuperAdmin();
+    }
+
+    // Idempotency keys — written by Cloud Functions only (admin SDK)
+    match /idempotencyKeys/{keyId} {
+      allow read, write: if false;
+    }
+
+    // ============================================================
+    // TENANT-LEVEL COLLECTIONS
+    // ============================================================
+
+    match /tenants/{tenantId} {
+      // Tenant document
+      allow read: if isAuthenticated() && (belongsToTenant(tenantId) || isSuperAdmin());
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() || isBusinessAdmin(tenantId);
+      allow delete: if isSuperAdmin();
+
+      // ----------------------------------------------------------
+      // TENANT USERS
+      // ----------------------------------------------------------
+      match /users/{userId} {
+        allow read: if isAdminLevel(tenantId) || (belongsToTenant(tenantId) && request.auth.uid == userId);
+        allow create: if isAdminLevel(tenantId);
+        allow update: if isAdminLevel(tenantId) || (belongsToTenant(tenantId) && request.auth.uid == userId);
+        allow delete: if isAdminLevel(tenantId);
+      }
+
+      // ----------------------------------------------------------
+      // PRODUCTS
+      // ----------------------------------------------------------
+      match /products/{productId} {
+        allow read: if isAuthenticated() && (belongsToTenant(tenantId) || isSuperAdmin());
+        allow create, update, delete: if isAdminLevel(tenantId);
+      }
+
+      // ----------------------------------------------------------
+      // CATEGORIES
+      // ----------------------------------------------------------
+      match /categories/{categoryId} {
+        allow read: if isAuthenticated() && (belongsToTenant(tenantId) || isSuperAdmin());
+        allow create, update, delete: if isAdminLevel(tenantId);
+      }
+
+      // ----------------------------------------------------------
+      // CUSTOMERS
+      // ----------------------------------------------------------
+      match /customers/{customerId} {
+        allow read: if isAdminLevel(tenantId) || isSalesman(tenantId) ||
+                      (isCustomer(tenantId) && request.auth.uid == customerId);
+        allow create: if isAuthenticated();
+        allow update: if isAdminLevel(tenantId) || (isCustomer(tenantId) && request.auth.uid == customerId);
+        allow delete: if isAdminLevel(tenantId);
+      }
+
+      // ----------------------------------------------------------
+      // ORDERS
+      // ----------------------------------------------------------
+      match /orders/{orderId} {
+        // Admins can read all orders in their tenant
+        // Salesmen can only read orders assigned to them with correct status
+        // Customers can only read their own orders
+        allow read: if isAdminLevel(tenantId) ||
+                      (isSalesman(tenantId) &&
+                        resource.data.assignedSalesmanId == request.auth.uid) ||
+                      (isCustomer(tenantId) &&
+                        resource.data.customerId == request.auth.uid);
+
+        // Orders are created via Cloud Functions (admin SDK), not directly
+        allow create: if false;
+
+        // Salesman can ONLY update delivery-related fields
+        allow update: if isAdminLevel(tenantId) ||
+                        (isSalesman(tenantId) &&
+                          resource.data.assignedSalesmanId == request.auth.uid &&
+                          resource.data.paymentStatus == 'PAID' &&
+                          resource.data.orderStatus == 'READY_FOR_DELIVERY' &&
+                          resource.data.deliveryStatus == 'NOT_DELIVERED' &&
+                          // Salesman can only modify these specific fields
+                          request.resource.data.diff(resource.data).affectedKeys()
+                            .hasOnly(['deliveryStatus', 'deliveredAt', 'deliveredBy', 'lastDeliveryAttempt', 'updatedAt']) &&
+                          // Cannot set arbitrary delivery status
+                          (request.resource.data.deliveryStatus == 'DELIVERED' ||
+                           request.resource.data.deliveryStatus == 'NOT_DELIVERED') &&
+                          // Payment/order status must remain unchanged
+                          request.resource.data.paymentStatus == resource.data.paymentStatus &&
+                          request.resource.data.orderStatus == resource.data.orderStatus &&
+                          request.resource.data.total == resource.data.total);
+
+        allow delete: if false;
+      }
+
+      // ----------------------------------------------------------
+      // PAYMENTS — Sensitive, Cloud Functions only
+      // ----------------------------------------------------------
+      match /payments/{paymentId} {
+        allow read: if isAdminLevel(tenantId);
+        // Payments are created/updated by Cloud Functions (admin SDK)
+        allow create, update, delete: if false;
+      }
+
+      // ----------------------------------------------------------
+      // REFUNDS — Sensitive, Cloud Functions only
+      // ----------------------------------------------------------
+      match /refunds/{refundId} {
+        allow read: if isAdminLevel(tenantId);
+        // Refunds are created/updated by Cloud Functions (admin SDK)
+        allow create, update, delete: if false;
+      }
+
+      // ----------------------------------------------------------
+      // CAMPAIGNS
+      // ----------------------------------------------------------
+      match /campaigns/{campaignId} {
+        allow read: if isAdminLevel(tenantId);
+        allow create, update: if isAdminLevel(tenantId);
+        allow delete: if isAdminLevel(tenantId);
+      }
+
+      // ----------------------------------------------------------
+      // WHATSAPP TEMPLATES
+      // ----------------------------------------------------------
+      match /whatsappTemplates/{templateId} {
+        allow read: if isAdminLevel(tenantId);
+        allow create, update, delete: if isAdminLevel(tenantId);
+      }
+
+      // ----------------------------------------------------------
+      // WHATSAPP MESSAGES
+      // ----------------------------------------------------------
+      match /whatsappMessages/{messageId} {
+        allow read: if isAdminLevel(tenantId);
+        // Messages are sent via Cloud Functions
+        allow create, update, delete: if false;
+      }
+
+      // ----------------------------------------------------------
+      // MOVIE PROMOTIONS
+      // ----------------------------------------------------------
+      match /moviePromotions/{promotionId} {
+        allow read: if isAuthenticated() && (belongsToTenant(tenantId) || isSuperAdmin());
+        allow create, update, delete: if isAdminLevel(tenantId);
+      }
+
+      // ----------------------------------------------------------
+      // ANALYTICS
+      // ----------------------------------------------------------
+      match /analytics/{analyticsId} {
+        allow read: if isAdminLevel(tenantId) || isSuperAdmin();
+        // Analytics are written by Cloud Functions
+        allow create, update, delete: if false;
+      }
+
+      // ----------------------------------------------------------
+      // AUDIT LOGS — Append-only via Cloud Functions
+      // ----------------------------------------------------------
+      match /auditLogs/{logId} {
+        allow read: if isAdminLevel(tenantId) || isSuperAdmin();
+        // Audit logs are created by Cloud Functions
+        allow create, update, delete: if false;
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Tenant product images
+    match /tenants/{tenantId}/products/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+                     request.auth.token.tenantId == tenantId &&
+                     (request.auth.token.role == 'BUSINESS_ADMIN' || request.auth.token.role == 'SUPER_ADMIN') &&
+                     request.resource.size < 5 * 1024 * 1024 &&
+                     request.resource.contentType.matches('image/.*');
+    }
+
+    // Tenant branding assets
+    match /tenants/{tenantId}/branding/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+                     request.auth.token.tenantId == tenantId &&
+                     (request.auth.token.role == 'BUSINESS_ADMIN' || request.auth.token.role == 'SUPER_ADMIN') &&
+                     request.resource.size < 2 * 1024 * 1024 &&
+                     request.resource.contentType.matches('image/.*');
+    }
+
+    // Movie promotion posters
+    match /tenants/{tenantId}/promotions/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+                     request.auth.token.tenantId == tenantId &&
+                     (request.auth.token.role == 'BUSINESS_ADMIN' || request.auth.token.role == 'SUPER_ADMIN') &&
+                     request.resource.size < 5 * 1024 * 1024 &&
+                     request.resource.contentType.matches('image/.*');
+    }
+
+    // Block all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
